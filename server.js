@@ -737,6 +737,10 @@ app.get('/', (req, res) => {
   else res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.use(express.static(__dirname));
+app.get('/dashboard.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
 
-app.listen(PORT, '0.0.0.0', () => console.log(`Catalyst running on port ${PORT}`));
+app.use(express.static(path.join(__dirname)));
+
+module.exports = app;
