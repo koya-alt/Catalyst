@@ -1,0 +1,10 @@
+Add comprehensive moderation and utility commands to the Discord bot
+
+Integrates Discord.js v14 slash commands for ban, kick, mute, warn, purge, giveaways, polls, and more into server.js, along with in-memory data stores for warnings and guild settings.
+
+Replit-Commit-Author: Agent
+Replit-Commit-Session-Id: b0f73394-a165-44ae-8e08-ee9e6810215a
+Replit-Commit-Checkpoint-Type: full_checkpoint
+Replit-Commit-Event-Id: eecabb8b-2393-458f-a141-c1aecbec82b5
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/3bb65069-0f94-490b-8c5d-688fb748d30c/b0f73394-a165-44ae-8e08-ee9e6810215a/t3Hkwza
+Replit-Helium-Checkpoint-Created: true

@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catalyst — Discord Bot</title>
+  <link rel="shortcut icon" href="catalyst.png" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0b14;
+      --card: #111120;
+      --border: #1c1c2e;
+      --purple: #7c3aed;
+      --purple-light: #a78bfa;
+      --blue: #5865f2;
+      --text: #ddddf0;
+      --muted: #60607a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: 64px;
+      padding: 0 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(11,11,20,0.85);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo img { height: 32px; }
+    .nav-logo-name {
+      font-size: 19px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-a:hover { color: #fff; background: rgba(255,255,255,0.05); }
+    .nav-invite {
+      margin-left: 8px;
+      background: var(--blue);
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 20px;
+      border-radius: 8px;
+      transition: opacity 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .nav-invite:hover { opacity: 0.88; transform: translateY(-1px); }
+    .nav-dev-btn {
+      margin-left: 10px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #333352;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 11px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+      letter-spacing: 0.3px;
+    }
+    .nav-dev-btn:hover { color: #555575; border-color: rgba(255,255,255,0.14); background: rgba(255,255,255,0.03); }
+
+    /* modal overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(6px);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: #0f0f1d;
+      border: 1px solid #1e1e32;
+      border-radius: 14px;
+      padding: 32px 28px 28px;
+      width: 100%;
+      max-width: 340px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+      transform: translateY(10px) scale(0.98);
+      transition: transform 0.2s;
+    }
+    .modal-overlay.open .modal-box { transform: translateY(0) scale(1); }
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .modal-sub { font-size: 12px; color: #444460; margin-bottom: 20px; }
+    .modal-input {
+      width: 100%;
+      padding: 11px 14px;
+      background: #16162a;
+      border: 1px solid #222238;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .modal-input:focus { border-color: #7c3aed; }
+    .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
+    .modal-submit {
+      flex: 1;
+      padding: 10px;
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      font-family: inherit;
+    }
+    .modal-submit:hover { opacity: 0.87; }
+    .modal-cancel {
+      padding: 10px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 8px;
+      color: #555575;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-family: inherit;
+    }
+    .modal-cancel:hover { background: rgba(255,255,255,0.08); }
+    .modal-err { font-size: 12px; color: #f87171; margin-top: 10px; display: none; text-align: center; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .glow {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .glow1 {
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 800px; height: 600px;
+      background: radial-gradient(ellipse, rgba(88,101,242,0.14) 0%, transparent 65%);
+    }
+    .glow2 {
+      bottom: -100px; right: -100px;
+      width: 500px; height: 500px;
+      background: radial-gradient(ellipse, rgba(124,58,237,0.09) 0%, transparent 70%);
+    }
+    .glow3 {
+      top: 30%; left: -80px;
+      width: 400px; height: 400px;
+      background: radial-gradient(ellipse, rgba(88,101,242,0.07) 0%, transparent 70%);
+    }
+
+    .hero-inner { position: relative; z-index: 1; max-width: 760px; }
+
+    .discord-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(88,101,242,0.12);
+      border: 1px solid rgba(88,101,242,0.28);
+      color: #8891f5;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 100px;
+      margin-bottom: 30px;
+    }
+    .discord-badge img { width: 16px; height: 16px; }
+
+    .hero h1 {
+      font-size: clamp(52px, 9vw, 96px);
+      font-weight: 900;
+      letter-spacing: -3px;
+      line-height: 1.0;
+      color: #fff;
+      margin-bottom: 22px;
+    }
+    .hero h1 .c {
+      background: linear-gradient(135deg, #818cf8, #7c3aed 50%, #5865f2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-tagline {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: var(--muted);
+      margin-bottom: 44px;
+      line-height: 1.7;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+    .btn-invite {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--blue);
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 15px 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(88,101,242,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-invite:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(88,101,242,0.55); }
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 15px 28px;
+      border-radius: 12px;
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.09); color: #fff; transform: translateY(-2px); }
+
+    /* stats */
+    .hero-stats {
+      display: flex;
+      gap: 36px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .hstat { text-align: center; }
+    .hstat-num {
+      font-size: 30px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -1px;
+    }
+    .hstat-num span { color: #818cf8; }
+    .hstat-label { font-size: 13px; color: var(--muted); margin-top: 3px; }
+    .hstat-div { width: 1px; height: 40px; background: var(--border); align-self: center; }
+
+    /* ── SECTION BASE ── */
+    section { padding: 96px 24px; }
+    .wrap { max-width: 1060px; margin: 0 auto; }
+    .sec-label {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #818cf8;
+      margin-bottom: 12px;
+    }
+    .sec-title {
+      text-align: center;
+      font-size: clamp(28px, 4.5vw, 46px);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -1.5px;
+      line-height: 1.08;
+      margin-bottom: 14px;
+    }
+    .sec-sub {
+      text-align: center;
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 460px;
+      margin: 0 auto 56px;
+      line-height: 1.7;
+    }
+    hr.div { border: none; border-top: 1px solid var(--border); }
+
+    /* ── FEATURES ── */
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    @media(max-width:860px){ .feat-grid { grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:540px){ .feat-grid { grid-template-columns: 1fr; } }
+
+    .feat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 30px 26px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s, border-color 0.25s;
+    }
+    .feat-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(88,101,242,0.5), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feat-card:hover { transform: translateY(-5px); border-color: rgba(88,101,242,0.3); }
+    .feat-card:hover::after { opacity: 1; }
+    .feat-card.wide { grid-column: span 2; }
+    @media(max-width:860px){ .feat-card.wide { grid-column: span 1; } }
+
+    .ficon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+    .fi-blue { background: rgba(88,101,242,0.13); }
+    .fi-purple { background: rgba(124,58,237,0.13); }
+    .fi-green { background: rgba(34,197,94,0.12); }
+    .fi-amber { background: rgba(245,158,11,0.12); }
+    .fi-red { background: rgba(239,68,68,0.12); }
+    .fi-pink { background: rgba(236,72,153,0.12); }
+
+    .feat-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: -0.3px;
+    }
+    .feat-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+    .feat-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--muted);
+    }
+
+    /* ── COMMANDS ── */
+    .cmd-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    @media(max-width:640px){ .cmd-grid { grid-template-columns: 1fr; } }
+
+    .cmd-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: border-color 0.2s;
+    }
+    .cmd-card:hover { border-color: rgba(88,101,242,0.3); }
+    .cmd-slash {
+      font-size: 15px;
+      font-weight: 800;
+      color: #818cf8;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .cmd-info { min-width: 0; }
+    .cmd-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .cmd-name code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #818cf8;
+      background: rgba(88,101,242,0.1);
+      padding: 1px 7px;
+      border-radius: 5px;
+    }
+    .cmd-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* ── BOT PREVIEW ── */
+    .preview-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+    @media(max-width:760px){ .preview-wrap { grid-template-columns: 1fr; } }
+
+    .preview-text .sec-title { text-align: left; }
+    .preview-text .sec-sub { text-align: left; margin-left: 0; margin-right: 0; }
+    .preview-text .sec-label { text-align: left; }
+
+    .check-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+    .check-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.5;
+    }
+    .ck {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(88,101,242,0.14);
+      border: 1px solid rgba(88,101,242,0.28);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 11px;
+      color: #818cf8;
+      margin-top: 1px;
+    }
+
+    /* discord-style chat mockup */
+    .chat-mock {
+      background: #1e1f2e;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #2a2b3d;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .chat-header {
+      background: #16172a;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #2a2b3d;
+    }
+    .chat-header-icon {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #5865f2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    .chat-header-name { font-size: 14px; font-weight: 700; color: #fff; }
+    .chat-header-status { font-size: 12px; color: #3ba55c; display: flex; align-items: center; gap: 4px; }
+    .online-dot { width: 7px; height: 7px; border-radius: 50%; background: #3ba55c; }
+    .chat-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+
+    .msg { display: flex; gap: 12px; align-items: flex-start; }
+    .msg-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .av-user { background: #5865f2; color: #fff; }
+    .av-bot { background: linear-gradient(135deg, #7c3aed, #5865f2); color: #fff; font-size: 13px; }
+    .msg-content { flex: 1; min-width: 0; }
+    .msg-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+    .msg-name .user-col { color: #fff; }
+    .msg-name .bot-col { color: #a78bfa; }
+    .msg-name .time { font-size: 11px; color: #3d3d5c; font-weight: 400; margin-left: 6px; }
+    .msg-text { font-size: 14px; color: #c8c9e0; line-height: 1.5; }
+
+    .embed {
+      margin-top: 8px;
+      background: #16172a;
+      border-left: 4px solid #7c3aed;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 14px;
+    }
+    .embed-title { font-size: 14px; font-weight: 700; color: #a78bfa; margin-bottom: 4px; }
+    .embed-desc { font-size: 13px; color: #9999bb; line-height: 1.5; }
+    .embed-field { margin-top: 8px; }
+    .embed-field-name { font-size: 12px; font-weight: 700; color: #c8c9e0; margin-bottom: 2px; }
+    .embed-field-val { font-size: 13px; color: #9999bb; }
+
+    /* ── INVITE CTA ── */
+    .cta-box {
+      max-width: 720px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, rgba(88,101,242,0.12), rgba(124,58,237,0.08));
+      border: 1px solid rgba(88,101,242,0.2);
+      border-radius: 24px;
+      padding: 72px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 500px; height: 400px;
+      background: radial-gradient(ellipse, rgba(88,101,242,0.18) 0%, transparent 70%);
+    }
+    .cta-box h2 {
+      font-size: clamp(26px, 4vw, 40px);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -1.5px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .cta-box p { color: var(--muted); font-size: 16px; margin-bottom: 36px; position: relative; }
+    .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 30px 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .footer-logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+    .footer-logo img { height: 26px; opacity: 0.5; }
+    .footer-logo span { font-size: 14px; font-weight: 800; color: #2a2a40; }
+    footer p { font-size: 13px; color: #1e1e30; }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: #fff; }
+
+    /* ── REVEAL ── */
+    .rv { opacity: 0; transform: translateY(20px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .rv.on { opacity: 1; transform: translateY(0); }
+
+    /* ── MOBILE ── */
+    @media(max-width:768px){
+      nav { padding: 0 18px; height: 58px; }
+      .nav-center { display: none; }
+      .nav-logo-name { font-size: 16px; }
+      .nav-invite { padding: 7px 12px; font-size: 13px; }
+      .nav-dev-btn { display: none; }
+
+      .hero { padding: 100px 18px 60px; }
+      .hero h1 { letter-spacing: -2px; }
+      .hero-actions { flex-direction: column; align-items: center; }
+      .btn-invite, .btn-outline { width: 100%; max-width: 320px; justify-content: center; }
+
+      .stats-bar { flex-direction: column; border-radius: 12px; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--border); padding: 16px 20px; }
+      .stat-item:last-child { border-bottom: none; }
+
+      section { padding: 60px 18px; }
+      .cta-box { padding: 44px 22px; }
+      footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
+      .footer-links { display: none; }
+
+      .preview-wrap { gap: 28px; }
+      .cmd-grid { grid-template-columns: 1fr; }
+
+      .hero-stats { gap: 20px; }
+      .hstat-div { display: none; }
+    }
+
+    @media(max-width:480px){
+      .nav-invite { display: none; }
+      .nav-links { gap: 0; }
+      .hero { padding: 90px 16px 50px; }
+      .feat-card.wide { grid-column: span 1; }
+      .chat-mock { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="nav-logo">
+      <img src="catalyst.png" alt="Catalyst">
+      <span class="nav-logo-name">Catalyst</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features" class="nav-a">Features</a>
+      <a href="#commands" class="nav-a">Commands</a>
+      <a href="#about" class="nav-a">About</a>
+      <a href="#" class="nav-invite">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.101 18.079.114 18.1.132 18.114a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        Add to Discord
+      </a>
+      <button class="nav-dev-btn" onclick="openDevPanel()">Developer Panel</button>
+    </div>
+  </nav>
+
+  <!-- DEVELOPER PANEL MODAL -->
+  <div class="modal-overlay" id="devModal" onclick="handleOverlayClick(event)">
+    <div class="modal-box">
+      <div class="modal-title">Developer Panel</div>
+      <div class="modal-sub">Enter your password to access the dashboard.</div>
+      <form id="devForm" onsubmit="submitDevLogin(event)">
+        <input class="modal-input" type="password" id="devPw" placeholder="Password" autocomplete="current-password" required>
+        <div class="modal-btns">
+          <button type="submit" class="modal-submit">Enter</button>
+          <button type="button" class="modal-cancel" onclick="closeDevPanel()">Cancel</button>
+        </div>
+        <div class="modal-err" id="devErr">Incorrect password.</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="glow glow1"></div>
+    <div class="glow glow2"></div>
+    <div class="glow glow3"></div>
+    <div class="hero-inner">
+      <div class="discord-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#8891f5"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.101 18.079.114 18.1.132 18.114a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        Discord Bot
+      </div>
+      <h1><span class="c">Catalyst</span></h1>
+      <p class="hero-tagline">A powerful, feature-rich Discord bot built to make your server better. Moderation, utilities, fun commands and more — all in one bot.</p>
+      <div class="hero-actions">
+        <a href="#" class="btn-invite">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.101 18.079.114 18.1.132 18.114a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+          Add to Discord
+        </a>
+        <a href="#features" class="btn-outline">See Features</a>
+      </div>
+      <div class="hero-stats rv">
+        <div class="hstat">
+          <div class="hstat-num"><span>50</span>+</div>
+          <div class="hstat-label">Commands</div>
+        </div>
+        <div class="hstat-div"></div>
+        <div class="hstat">
+          <div class="hstat-num"><span>99.9</span>%</div>
+          <div class="hstat-label">Uptime</div>
+        </div>
+        <div class="hstat-div"></div>
+        <div class="hstat">
+          <div class="hstat-num">24<span>/</span>7</div>
+          <div class="hstat-label">Online</div>
+        </div>
+        <div class="hstat-div"></div>
+        <div class="hstat">
+          <div class="hstat-num"><span>Free</span></div>
+          <div class="hstat-label">Always</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div">
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="wrap">
+      <div class="sec-label rv">What Catalyst can do</div>
+      <h2 class="sec-title rv">Everything your server needs</h2>
+      <p class="sec-sub rv">From moderation to entertainment, Catalyst has you covered with a full suite of tools.</p>
+
+      <div class="feat-grid">
+        <div class="feat-card wide rv">
+          <div class="ficon fi-blue">🛡️</div>
+          <div class="feat-title">Advanced Moderation</div>
+          <div class="feat-desc">Keep your server safe and clean with powerful moderation tools. Ban, kick, mute, warn, and manage members with ease. Full audit logs and automatic punishment escalation keeps everything under control.</div>
+          <div class="feat-tags">
+            <span class="tag">Ban / Kick</span>
+            <span class="tag">Mute</span>
+            <span class="tag">Warn System</span>
+            <span class="tag">Audit Log</span>
+            <span class="tag">Auto-mod</span>
+          </div>
+        </div>
+
+        <div class="feat-card rv">
+          <div class="ficon fi-purple">⚙️</div>
+          <div class="feat-title">Server Management</div>
+          <div class="feat-desc">Create and manage roles, channels, and categories. Set permissions, create welcome messages, and configure your server exactly how you want it.</div>
+          <div class="feat-tags">
+            <span class="tag">Roles</span>
+            <span class="tag">Channels</span>
+            <span class="tag">Permissions</span>
+          </div>
+        </div>
+
+        <div class="feat-card rv">
+          <div class="ficon fi-green">📊</div>
+          <div class="feat-title">Server Stats</div>
+          <div class="feat-desc">Track member counts, message activity, and server growth over time. Auto-updating stat channels show your community in real time.</div>
+          <div class="feat-tags">
+            <span class="tag">Member Count</span>
+            <span class="tag">Activity</span>
+            <span class="tag">Analytics</span>
+          </div>
+        </div>
+
+        <div class="feat-card rv">
+          <div class="ficon fi-amber">🎉</div>
+          <div class="feat-title">Welcome System</div>
+          <div class="feat-desc">Greet new members with customizable welcome messages and auto-assign roles when they join. Make your server feel alive from day one.</div>
+          <div class="feat-tags">
+            <span class="tag">Welcome DM</span>
+            <span class="tag">Auto Role</span>
+          </div>
+        </div>
+
+        <div class="feat-card rv">
+          <div class="ficon fi-red">🎵</div>
+          <div class="feat-title">Music Player</div>
+          <div class="feat-desc">Play music from YouTube, Spotify, and SoundCloud directly in your voice channels. Queue management, volume control and more.</div>
+          <div class="feat-tags">
+            <span class="tag">YouTube</span>
+            <span class="tag">Spotify</span>
+            <span class="tag">Queue</span>
+          </div>
+        </div>
+
+        <div class="feat-card rv">
+          <div class="ficon fi-pink">🎮</div>
+          <div class="feat-title">Fun & Games</div>
+          <div class="feat-desc">Keep your community entertained with minigames, memes, polls, giveaways, and economy commands. There's always something to do.</div>
+          <div class="feat-tags">
+            <span class="tag">Minigames</span>
+            <span class="tag">Giveaways</span>
+            <span class="tag">Economy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="div">
+
+  <!-- ABOUT / CHAT PREVIEW -->
+  <section id="about">
+    <div class="wrap">
+      <div class="preview-wrap">
+        <div class="preview-text rv">
+          <div class="sec-label">Reliable & Fast</div>
+          <h2 class="sec-title">Built to last.<br>Built to scale.</h2>
+          <p class="sec-sub">Catalyst is hosted on powerful infrastructure and built with the latest Discord.js library, so it's always fast and always online.</p>
+          <ul class="check-list">
+            <li><div class="ck">✓</div> 99.9% uptime — Catalyst is always there when your members need it</li>
+            <li><div class="ck">✓</div> Instant response times, even in large servers with thousands of members</li>
+            <li><div class="ck">✓</div> Constantly updated with new features and Discord API improvements</li>
+            <li><div class="ck">✓</div> Completely free — no paywalls, no premium tiers</li>
+            <li><div class="ck">✓</div> Easy to set up — invite, run <code style="font-family:monospace;font-size:12px;color:#818cf8;background:rgba(88,101,242,0.1);padding:1px 6px;border-radius:4px;">/setup</code>, and you're done</li>
+          </ul>
+        </div>
+        <div class="rv">
+          <div class="chat-mock">
+            <div class="chat-header">
+              <div class="chat-header-icon">⚡</div>
+              <div>
+                <div class="chat-header-name">Catalyst</div>
+                <div class="chat-header-status"><div class="online-dot"></div> Online</div>
+              </div>
+            </div>
+            <div class="chat-body">
+              <div class="msg">
+                <div class="msg-avatar av-user">U</div>
+                <div class="msg-content">
+                  <div class="msg-name"><span class="user-col">User</span><span class="time">Today at 3:12 PM</span></div>
+                  <div class="msg-text">/ban @spammer Spamming in chat</div>
+                </div>
+              </div>
+              <div class="msg">
+                <div class="msg-avatar av-bot">⚡</div>
+                <div class="msg-content">
+                  <div class="msg-name"><span class="bot-col">Catalyst</span> <span style="font-size:10px;background:#5865f2;color:#fff;padding:1px 5px;border-radius:3px;font-weight:700;">BOT</span><span class="time">Today at 3:12 PM</span></div>
+                  <div class="embed">
+                    <div class="embed-title">✅ Member Banned</div>
+                    <div class="embed-desc">Successfully banned spammer from the server.</div>
+                    <div class="embed-field">
+                      <div class="embed-field-name">Reason</div>
+                      <div class="embed-field-val">Spamming in chat</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="msg">
+                <div class="msg-avatar av-user">A</div>
+                <div class="msg-content">
+                  <div class="msg-name"><span class="user-col">Admin</span><span class="time">Today at 3:14 PM</span></div>
+                  <div class="msg-text">/stats server</div>
+                </div>
+              </div>
+              <div class="msg">
+                <div class="msg-avatar av-bot">⚡</div>
+                <div class="msg-content">
+                  <div class="msg-name"><span class="bot-col">Catalyst</span> <span style="font-size:10px;background:#5865f2;color:#fff;padding:1px 5px;border-radius:3px;font-weight:700;">BOT</span><span class="time">Today at 3:14 PM</span></div>
+                  <div class="embed">
+                    <div class="embed-title">📊 Server Stats</div>
+                    <div class="embed-field">
+                      <div class="embed-field-name">Members</div>
+                      <div class="embed-field-val">1,247 total · 834 online</div>
+                    </div>
+                    <div class="embed-field">
+                      <div class="embed-field-name">Channels</div>
+                      <div class="embed-field-val">18 text · 6 voice</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="div">
+
+  <!-- COMMANDS -->
+  <section id="commands">
+    <div class="wrap">
+      <div class="sec-label rv">Slash Commands</div>
+      <h2 class="sec-title rv">Simple. Powerful. Familiar.</h2>
+      <p class="sec-sub rv">All commands use Discord's native slash command system — just type / and Catalyst appears.</p>
+
+      <div class="cmd-grid rv">
+        <div class="cmd-card">
+          <div class="cmd-slash">/</div>
+          <div class="cmd-info">
+            <div class="cmd-name"><code>ban</code></div>
+            <div class="cmd-desc">Ban a member from the server with an optional reason and duration.</div>
+          </div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-slash">/</div>
+          <div class="cmd-info">
+            <div class="cmd-name"><code>kick</code></div>
+            <div class="cmd-desc">Remove a member from the server. They can rejoin with an invite link.</div>
+          </div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-slash">/</div>
+          <div class="cmd-info">
+            <div class="cmd-name"><code>mute</code></div>
+            <div class="cmd-desc">Timeout a member for a specified duration. Great for cooling things down.</div>
+          </div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-slash">/</div>
+          <div class="cmd-info">
+            <div class="cmd-name"><code>warn</code></div>
+            <div class="cmd-desc">Issue a formal warning to a member and log it to their record.</div>
+          </div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-slash">/</div>
+          <div class="cmd-info">
+            <div class="cmd-name"><code>play</code></div>
+            <div class="cmd-desc">Play a song or playlist from YouTube or Spotify in a voice channel.</div>
+          </div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-slash">/</div>
+          <div class="cmd-info">
+            <div class="cmd-name"><code>stats</code></div>
+            <div class="cmd-desc">Display server statistics, member counts, and activity information.</div>
+          </div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-slash">/</div>
+          <div class="cmd-info">
+            <div class="cmd-name"><code>giveaway</code></div>
+            <div class="cmd-desc">Start a giveaway in any channel. Set duration, prize, and winner count.</div>
+          </div>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-slash">/</div>
+          <div class="cmd-info">
+            <div class="cmd-name"><code>setup</code></div>
+            <div class="cmd-desc">Run the setup wizard to configure Catalyst for your server in minutes.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="div">
+
+  <!-- CTA -->
+  <section style="padding: 80px 24px;">
+    <div class="cta-box rv">
+      <h2>Ready to add Catalyst?</h2>
+      <p>It's completely free. Click the button below and select your server.</p>
+      <div class="cta-btns">
+        <a href="#" class="btn-invite">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057.101 18.079.114 18.1.132 18.114a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+          Add Catalyst to Discord
+        </a>
+        <a href="#features" class="btn-outline">Learn More</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <a href="/" class="footer-logo">
+      <img src="catalyst.png" alt="">
+      <span>Catalyst</span>
+    </a>
+    <p>© 2026 Catalyst Bot. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#commands">Commands</a>
+      <a href="#about">About</a>
+    </div>
+  </footer>
+
+  <script>
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) setTimeout(() => e.target.classList.add('on'), i * 65);
+      });
+    }, { threshold: 0.07 });
+    document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+    function openDevPanel() {
+      document.getElementById('devModal').classList.add('open');
+      setTimeout(() => document.getElementById('devPw').focus(), 150);
+    }
+    function closeDevPanel() {
+      document.getElementById('devModal').classList.remove('open');
+      document.getElementById('devPw').value = '';
+      document.getElementById('devErr').style.display = 'none';
+    }
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('devModal')) closeDevPanel();
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDevPanel();
+    });
+    async function submitDevLogin(e) {
+      e.preventDefault();
+      const pw = document.getElementById('devPw').value;
+      const err = document.getElementById('devErr');
+      err.style.display = 'none';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = '/dashboard.html';
+        } else {
+          err.style.display = 'block';
+          document.getElementById('devPw').value = '';
+          document.getElementById('devPw').focus();
+        }
+      } catch {
+        err.textContent = 'Server error. Try again.';
+        err.style.display = 'block';
+      }
+    }
+  </script>
+
+</body>
+</html>

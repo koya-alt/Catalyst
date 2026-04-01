@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bot Control Panel</title>
+  <link rel="shortcut icon" href="catalyst.png" type="image/x-icon">
+  <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d0d1a;
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      color: #ccc;
+    }
+    .topbar {
+      background: #13131f;
+      border-bottom: 1px solid #1e1e30;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-left img { height: 36px; }
+    .topbar-left h1 { color: #fff; font-size: 18px; font-weight: 700; }
+    .bot-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .status-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: #444;
+    }
+    .status-dot.online { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+    .btn-sm-dark {
+      background: #1e1e30;
+      border: 1px solid #2a2a3d;
+      border-radius: 6px;
+      color: #aaa;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-sm-dark:hover { background: #252538; color: #fff; }
+    .container-main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 20px;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #5555aa;
+      margin-bottom: 12px;
+    }
+    .card {
+      background: #13131f;
+      border: 1px solid #1e1e30;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card h2 { color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    input[type="text"], input[type="password"], textarea, select {
+      width: 100%;
+      padding: 11px 14px;
+      background: #1a1a2a;
+      border: 1px solid #2a2a3d;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus, select:focus { border-color: #7c3aed; }
+    textarea { resize: vertical; min-height: 80px; }
+    select option { background: #1a1a2a; }
+    .btn-primary-custom {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-primary-custom:hover { opacity: 0.85; }
+    .btn-danger-custom {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-danger-custom:hover { opacity: 0.85; }
+    .btn-warn-custom {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #d97706, #92400e);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-warn-custom:hover { opacity: 0.85; }
+    .guild-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .guild-card {
+      background: #1a1a2a;
+      border: 2px solid #2a2a3d;
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .guild-card:hover { border-color: #7c3aed; background: #1e1e33; }
+    .guild-card.selected { border-color: #7c3aed; background: #1e1a30; }
+    .guild-icon {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: #2a2a3d;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #7c3aed;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .guild-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .guild-info { min-width: 0; }
+    .guild-name { color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .guild-members { color: #666; font-size: 12px; margin-top: 2px; }
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      padding: 16px;
+      background: #1a1a2a;
+      border: 1px solid #2a2a3d;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      text-align: left;
+      width: 100%;
+    }
+    .action-btn:hover { border-color: #444; }
+    .action-btn .action-icon { font-size: 20px; }
+    .action-btn .action-label { color: #fff; font-size: 14px; font-weight: 600; }
+    .action-btn .action-desc { color: #666; font-size: 12px; }
+    .action-btn.danger { border-color: #3d1a1a; }
+    .action-btn.danger:hover { border-color: #dc2626; }
+    .action-btn.warn { border-color: #3d2a1a; }
+    .action-btn.warn:hover { border-color: #d97706; }
+    .log-box {
+      background: #0a0a12;
+      border: 1px solid #1e1e30;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: monospace;
+      font-size: 13px;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 16px;
+      min-height: 60px;
+    }
+    .log-entry { padding: 2px 0; border-bottom: 1px solid #111122; }
+    .log-entry.success { color: #22c55e; }
+    .log-entry.error { color: #ff5555; }
+    .log-entry.info { color: #60a5fa; }
+    .log-entry.warn { color: #fbbf24; }
+    .empty-state { color: #444; font-style: italic; }
+    .input-row { display: flex; gap: 10px; align-items: flex-end; }
+    .input-row > * { flex: 1; }
+    .input-row button { flex: 0 0 auto; }
+    label.field-label {
+      display: block;
+      color: #7777aa;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .field-group { margin-bottom: 14px; }
+    .no-guild-msg {
+      color: #555;
+      font-style: italic;
+      font-size: 14px;
+      padding: 20px 0;
+      text-align: center;
+    }
+    .confirm-dialog {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    .confirm-box {
+      background: #13131f;
+      border: 1px solid #2a2a3d;
+      border-radius: 14px;
+      padding: 32px 28px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    .confirm-box h3 { color: #fff; font-size: 18px; margin-bottom: 10px; }
+    .confirm-box p { color: #888; font-size: 14px; margin-bottom: 24px; }
+    .confirm-btns { display: flex; gap: 12px; justify-content: center; }
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #ffffff44;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+    .tab-btn {
+      padding: 8px 18px;
+      background: transparent;
+      border: 1px solid #2a2a3d;
+      border-radius: 8px;
+      color: #666;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #7c3aed22;
+      border-color: #7c3aed;
+      color: #a78bfa;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    @media (max-width: 768px) {
+      .topbar { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+      .topbar-left h1 { font-size: 15px; }
+      .topbar-left img { height: 28px; }
+      .container-main { padding: 16px 12px; }
+      .card { padding: 18px 16px; }
+      .card h2 { font-size: 15px; }
+      .input-row { flex-direction: column; }
+      .input-row button { width: 100%; }
+      .guild-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .action-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .tabs { flex-wrap: wrap; }
+      .action-btn { padding: 14px 12px; }
+      .action-btn .action-icon { font-size: 18px; }
+      .action-btn .action-label { font-size: 13px; }
+      .action-btn .action-desc { font-size: 11px; }
+    }
+    @media (max-width: 480px) {
+      .topbar > div:last-child { gap: 8px; }
+      .btn-sm-dark { padding: 5px 10px; font-size: 12px; }
+      .guild-grid { grid-template-columns: 1fr; }
+      .action-grid { grid-template-columns: 1fr; }
+      .guild-card { padding: 12px; }
+      .log-box { font-size: 12px; }
+      #statusText { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="catalyst.png" alt="Logo">
+      <h1>Bot Control Panel</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div class="bot-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText" style="color:#666;">Not connected</span>
+      </div>
+      <a href="/index.html" class="btn-sm-dark" style="text-decoration:none;">← Homepage</a>
+      <button class="btn-sm-dark" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="container-main">
+
+    <div class="card">
+      <h2>🤖 Bot Connection</h2>
+      <div class="field-group">
+        <label class="field-label">Discord Bot Token</label>
+        <div class="input-row">
+          <input type="password" id="tokenInput" placeholder="Paste your bot token here...">
+          <button class="btn-primary-custom" onclick="connectBot()" id="connectBtn">Connect</button>
+          <button class="btn-sm-dark" onclick="disconnectBot()" id="disconnectBtn" style="display:none;">Disconnect</button>
+        </div>
+      </div>
+      <div id="connectStatus" style="font-size:13px;margin-top:8px;color:#666;"></div>
+    </div>
+
+    <div id="mainPanel" style="display:none;">
+
+      <div class="card">
+        <h2>🖥️ Your Servers</h2>
+        <p style="font-size:13px;color:#555;margin-bottom:12px;">Select a server to perform actions on it.</p>
+        <button class="btn-sm-dark" onclick="loadGuilds()" style="margin-bottom:12px;">↻ Refresh Servers</button>
+        <div class="guild-grid" id="guildGrid">
+          <div class="no-guild-msg">Loading servers...</div>
+        </div>
+      </div>
+
+      <div id="actionPanel" style="display:none;">
+        <div class="card">
+          <h2>⚡ Actions — <span id="selectedGuildName" style="color:#a78bfa;"></span></h2>
+
+          <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('quick')">Quick Actions</button>
+            <button class="tab-btn" onclick="switchTab('message')">Send Message</button>
+          </div>
+
+          <div id="tab-quick" class="tab-panel active">
+            <div class="action-grid">
+              <button class="action-btn warn" onclick="confirmAction('leave', 'Leave this server', 'The bot will leave this server. You can re-invite it later.', doLeave)">
+                <span class="action-icon">🚪</span>
+                <span class="action-label">Leave Server</span>
+                <span class="action-desc">Bot leaves this guild</span>
+              </button>
+              <button class="action-btn danger" onclick="confirmAction('channels', 'Delete All Channels', 'This will delete every channel the bot has permission to delete. This cannot be undone.', doDeleteChannels)">
+                <span class="action-icon">🗑️</span>
+                <span class="action-label">Delete All Channels</span>
+                <span class="action-desc">Removes all deletable channels</span>
+              </button>
+              <button class="action-btn danger" onclick="confirmAction('roles', 'Delete All Roles', 'This will delete all roles the bot can manage. This cannot be undone.', doDeleteRoles)">
+                <span class="action-icon">🎭</span>
+                <span class="action-label">Delete All Roles</span>
+                <span class="action-desc">Removes all manageable roles</span>
+              </button>
+              <button class="action-btn warn" onclick="confirmAction('kick', 'Kick All Members', 'This will kick every kickable member from the server.', doKickAll)">
+                <span class="action-icon">👢</span>
+                <span class="action-label">Kick All Members</span>
+                <span class="action-desc">Kicks all kickable members</span>
+              </button>
+              <button class="action-btn danger" onclick="confirmAction('ban', 'Ban All Members', 'This will ban every bannable member from the server. This cannot be undone easily.', doBanAll)">
+                <span class="action-icon">🔨</span>
+                <span class="action-label">Ban All Members</span>
+                <span class="action-desc">Bans all bannable members</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="tab-message" class="tab-panel">
+            <div class="field-group">
+              <label class="field-label">Select Channel</label>
+              <select id="channelSelect" onchange="">
+                <option value="">-- Select a channel --</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Message</label>
+              <textarea id="messageInput" placeholder="Type your message here..."></textarea>
+            </div>
+            <button class="btn-primary-custom" onclick="doSendMessage()">Send Message</button>
+          </div>
+
+          <div class="log-box" id="logBox">
+            <div class="empty-state">Action log will appear here...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="confirm-dialog" id="confirmDialog" style="display:none;">
+    <div class="confirm-box">
+      <h3 id="confirmTitle"></h3>
+      <p id="confirmDesc"></p>
+      <div class="confirm-btns">
+        <button class="btn-sm-dark" onclick="closeConfirm()">Cancel</button>
+        <button class="btn-danger-custom" id="confirmOkBtn" onclick="runConfirmedAction()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedGuildId = null;
+    let selectedGuildName = '';
+    let pendingAction = null;
+
+    async function checkAuth() {
+      const res = await fetch('/api/auth-check');
+      const data = await res.json();
+      if (!data.loggedIn) window.location.href = '/login.html';
+    }
+
+    async function logout() {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login.html';
+    }
+
+    async function connectBot() {
+      const token = document.getElementById('tokenInput').value.trim();
+      if (!token) return;
+      const btn = document.getElementById('connectBtn');
+      btn.innerHTML = '<span class="spinner"></span>Connecting...';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/bot/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+        if (data.success) {
+          setConnected(data.username);
+          document.getElementById('tokenInput').value = '';
+          loadGuilds();
+        } else {
+          document.getElementById('connectStatus').textContent = '✗ ' + data.error;
+          document.getElementById('connectStatus').style.color = '#ff5555';
+        }
+      } catch (e) {
+        document.getElementById('connectStatus').textContent = '✗ Connection failed';
+      }
+      btn.innerHTML = 'Connect';
+      btn.disabled = false;
+    }
+
+    async function disconnectBot() {
+      await fetch('/api/bot/disconnect', { method: 'POST' });
+      setDisconnected();
+    }
+
+    function setConnected(username) {
+      document.getElementById('statusDot').classList.add('online');
+      document.getElementById('statusText').textContent = username;
+      document.getElementById('statusText').style.color = '#22c55e';
+      document.getElementById('connectStatus').textContent = '✓ Connected as ' + username;
+      document.getElementById('connectStatus').style.color = '#22c55e';
+      document.getElementById('connectBtn').style.display = 'none';
+      document.getElementById('disconnectBtn').style.display = '';
+      document.getElementById('mainPanel').style.display = '';
+    }
+
+    function setDisconnected() {
+      document.getElementById('statusDot').classList.remove('online');
+      document.getElementById('statusText').textContent = 'Not connected';
+      document.getElementById('statusText').style.color = '#666';
+      document.getElementById('connectStatus').textContent = '';
+      document.getElementById('connectBtn').style.display = '';
+      document.getElementById('disconnectBtn').style.display = 'none';
+      document.getElementById('mainPanel').style.display = 'none';
+      document.getElementById('actionPanel').style.display = 'none';
+      document.getElementById('guildGrid').innerHTML = '<div class="no-guild-msg">Loading servers...</div>';
+    }
+
+    async function loadGuilds() {
+      try {
+        const res = await fetch('/api/bot/guilds');
+        const data = await res.json();
+        if (!data.success) return;
+        const grid = document.getElementById('guildGrid');
+        if (data.guilds.length === 0) {
+          grid.innerHTML = '<div class="no-guild-msg">Bot is not in any servers.</div>';
+          return;
+        }
+        grid.innerHTML = data.guilds.map(g => `
+          <div class="guild-card" onclick="selectGuild('${g.id}', ${JSON.stringify(g.name).replace(/"/g, '&quot;')})">
+            <div class="guild-icon">${g.icon ? `<img src="${g.icon}" alt="">` : g.name.charAt(0).toUpperCase()}</div>
+            <div class="guild-info">
+              <div class="guild-name">${escHtml(g.name)}</div>
+              <div class="guild-members">${g.memberCount ? g.memberCount.toLocaleString() + ' members' : 'Unknown'}</div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {}
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    async function selectGuild(id, name) {
+      selectedGuildId = id;
+      selectedGuildName = name;
+      document.querySelectorAll('.guild-card').forEach(c => c.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+      document.getElementById('selectedGuildName').textContent = name;
+      document.getElementById('actionPanel').style.display = '';
+      document.getElementById('logBox').innerHTML = '<div class="empty-state">Action log will appear here...</div>';
+      loadChannels();
+    }
+
+    async function loadChannels() {
+      try {
+        const res = await fetch('/api/bot/channels?guildId=' + selectedGuildId);
+        const data = await res.json();
+        const sel = document.getElementById('channelSelect');
+        sel.innerHTML = '<option value="">-- Select a channel --</option>';
+        if (data.success) {
+          data.channels.forEach(c => {
+            sel.innerHTML += `<option value="${c.id}">#${escHtml(c.name)}</option>`;
+          });
+        }
+      } catch (e) {}
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', ['quick','message'][i] === tab));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+    }
+
+    function addLog(msg, type = 'info') {
+      const box = document.getElementById('logBox');
+      if (box.querySelector('.empty-state')) box.innerHTML = '';
+      const d = document.createElement('div');
+      d.className = 'log-entry ' + type;
+      d.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+      box.prepend(d);
+    }
+
+    function confirmAction(id, title, desc, action) {
+      pendingAction = action;
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmDesc').textContent = desc;
+      document.getElementById('confirmDialog').style.display = 'flex';
+    }
+    function closeConfirm() {
+      document.getElementById('confirmDialog').style.display = 'none';
+      pendingAction = null;
+    }
+    function runConfirmedAction() {
+      closeConfirm();
+      if (pendingAction) pendingAction();
+    }
+
+    async function doLeave() {
+      addLog('Leaving server ' + selectedGuildName + '...', 'warn');
+      const res = await fetch('/api/bot/leave-guild', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guildId: selectedGuildId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        addLog(data.message, 'success');
+        document.getElementById('actionPanel').style.display = 'none';
+        loadGuilds();
+      } else {
+        addLog('Error: ' + data.error, 'error');
+      }
+    }
+
+    async function doDeleteChannels() {
+      addLog('Deleting all channels in ' + selectedGuildName + '...', 'warn');
+      const res = await fetch('/api/bot/delete-channels', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guildId: selectedGuildId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        data.results.forEach(r => {
+          addLog((r.success ? '✓' : '✗') + ' #' + r.name + (r.error ? ': ' + r.error : ''), r.success ? 'success' : 'error');
+        });
+        addLog('Done deleting channels.', 'info');
+      } else {
+        addLog('Error: ' + data.error, 'error');
+      }
+    }
+
+    async function doDeleteRoles() {
+      addLog('Deleting all roles in ' + selectedGuildName + '...', 'warn');
+      const res = await fetch('/api/bot/delete-roles', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guildId: selectedGuildId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        data.results.forEach(r => {
+          addLog((r.success ? '✓' : '✗') + ' @' + r.name + (r.error ? ': ' + r.error : ''), r.success ? 'success' : 'error');
+        });
+        addLog('Done deleting roles.', 'info');
+      } else {
+        addLog('Error: ' + data.error, 'error');
+      }
+    }
+
+    async function doKickAll() {
+      addLog('Kicking all members in ' + selectedGuildName + '...', 'warn');
+      const res = await fetch('/api/bot/kick-all', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guildId: selectedGuildId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        data.results.forEach(r => {
+          addLog((r.success ? '✓' : '✗') + ' ' + r.name + (r.error ? ': ' + r.error : ''), r.success ? 'success' : 'error');
+        });
+        addLog('Done kicking members.', 'info');
+      } else {
+        addLog('Error: ' + data.error, 'error');
+      }
+    }
+
+    async function doBanAll() {
+      addLog('Banning all members in ' + selectedGuildName + '...', 'warn');
+      const res = await fetch('/api/bot/ban-all', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guildId: selectedGuildId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        data.results.forEach(r => {
+          addLog((r.success ? '✓' : '✗') + ' ' + r.name + (r.error ? ': ' + r.error : ''), r.success ? 'success' : 'error');
+        });
+        addLog('Done banning members.', 'info');
+      } else {
+        addLog('Error: ' + data.error, 'error');
+      }
+    }
+
+    async function doSendMessage() {
+      const channelId = document.getElementById('channelSelect').value;
+      const message = document.getElementById('messageInput').value.trim();
+      if (!channelId || !message) {
+        addLog('Please select a channel and enter a message.', 'warn');
+        return;
+      }
+      const res = await fetch('/api/bot/send-message', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guildId: selectedGuildId, channelId, message })
+      });
+      const data = await res.json();
+      if (data.success) {
+        addLog('Message sent successfully!', 'success');
+        document.getElementById('messageInput').value = '';
+      } else {
+        addLog('Error: ' + data.error, 'error');
+      }
+    }
+
+    checkAuth();
+
+    fetch('/api/bot/status').then(r => r.json()).then(data => {
+      if (data.connected) {
+        setConnected(data.username);
+        loadGuilds();
+      }
+    });
+  </script>
+</body>
+</html>
